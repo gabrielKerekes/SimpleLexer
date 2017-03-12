@@ -1,0 +1,2 @@
+C:\Users\GabrielK\skola\afj\AfjZadanie2\AfjZadanie2\bin\Debug\AfjZadanie2.exe.config
+C:\Users\GabrielK\skola\afj\SimpleLexer\AfjZadanie2\bin\Debug\AfjZadanie2.exe.config
