@@ -1,1 +1,6 @@
 C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\bin\Debug\SimpleLexer.exe.config
+C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\bin\Debug\SimpleLexer.exe
+C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\bin\Debug\SimpleLexer.pdb
+C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\obj\Debug\SimpleLexer.csprojResolveAssemblyReference.cache
+C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\obj\Debug\SimpleLexer.exe
+C:\Users\GabrielK\skola\afj\SimpleLexer\SimpleLexer\obj\Debug\SimpleLexer.pdb
