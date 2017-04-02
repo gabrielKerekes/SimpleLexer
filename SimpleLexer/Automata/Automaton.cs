@@ -61,7 +61,7 @@ namespace SimpleLexer.Automata
             if (AcceptStates.Contains(currentState) && i == currentInput.Length)
                 Console.WriteLine("WORD '" + input + "' accepted!");
             else
-                Console.WriteLine("WORD '" + input + "' refused!");
+                Console.WriteLine("WORD '" + input + "' NOT accepted!");
         }
 
         public void PrintTransitionTable()
@@ -86,10 +86,10 @@ namespace SimpleLexer.Automata
                 Console.Write("{0, 10}", state.Name);
                 foreach (var c in automaton.Symbols)
                 {
-                    var transitions = automaton.Transitions.Where(t => t.FromState == state && t.Symbol == c);
+                    var transitions = automaton.Transitions.Where(t => t.FromState == state && t.Symbol == c).ToList();
                     int i = 0;
-                    StringBuilder sb = new StringBuilder();
-                    var transitionsCount = transitions.Count();
+                    var sb = new StringBuilder();
+                    var transitionsCount = transitions.Count;
                     foreach (var transition in transitions)
                     {
                         sb.Append(transition.ToState.Name);
@@ -105,6 +105,89 @@ namespace SimpleLexer.Automata
 
                 Console.WriteLine();
             }
+        }
+
+        public void Determinize()
+        {
+            for (int symbolsIndex = 0; symbolsIndex < Symbols.Count; symbolsIndex++)
+            {
+                for (int statesIndex = 0; statesIndex < States.Count; statesIndex++)
+                {
+                    var transitions = Transitions.Where(t => t.FromState == States[statesIndex] && t.Symbol == Symbols[symbolsIndex]).ToList();
+                    if (transitions.Count == 0)
+                        continue;
+
+                    var toStates = transitions.Select(t => t.ToState).Distinct().ToList();
+                    if (toStates.Count < 2)
+                        continue;
+
+                    var newState = CreateJoinedState(toStates);
+                    if (newState == null)
+                        continue;
+
+                    if (!States.Contains(newState))
+                        States.Add(newState);
+
+                    if (AcceptStates.Any(toStates.Contains))
+                        AcceptStates.Add(newState);
+
+                    Transitions.Add(new Transition(States[statesIndex], Symbols[symbolsIndex], newState));
+
+                    Transitions.RemoveAll(transitions.Contains);
+
+                    symbolsIndex = -1;
+                    break;
+                }
+            }
+
+            Minimalize();
+            Minimalize();
+        }
+
+        private State CreateJoinedState(List<State> states)
+        {
+            var newState = new JoinedState(states);
+
+            foreach (var state in states)
+            {
+                var stateTransitions = Transitions.Where(t => t.FromState == state).ToList();
+
+                for (int i = 0; i < stateTransitions.Count; i++)
+                {
+                    var iTransition = stateTransitions[i];
+
+                    if (Transitions.Any(t =>
+                                t.ToState == iTransition.ToState 
+                                && t.Symbol == iTransition.Symbol 
+                                && t.FromState == newState))
+                        continue;
+
+                    Transitions.Add(new Transition(newState, iTransition.Symbol, iTransition.ToState));
+                }
+            }
+
+            return newState;
+        }
+
+        // todo: GABO - maybe finish
+        private void Minimalize()
+        {
+            RemoveUnreachableStates();
+        }
+
+        private void RemoveUnreachableStates()
+        {
+            var unreachableStates = new List<State>();
+            foreach (var state in States.Where(s => s != StartState))
+            {
+                if (Transitions.Any(t => t.ToState == state))
+                    continue;
+
+                unreachableStates.Add(state);
+                AcceptStates.Remove(state);
+            }
+
+            States.RemoveAll(unreachableStates.Contains);
         }
     }
 }
