@@ -12,6 +12,7 @@ namespace SimpleLexer.Automata
         public List<Transition> Transitions { get; set; }
         public State StartState { get; set; }
         public List<State> AcceptStates { get; set; }
+        public Dictionary<int, string> LanguageWords { get; set; }
 
         private State currentState;
         private string currentInput;
@@ -25,6 +26,7 @@ namespace SimpleLexer.Automata
             Transitions = transitions;
             StartState = startState;
             AcceptStates = acceptStates;
+            LanguageWords = new Dictionary<int, string>();
 
             currentState = states[0];
             currentInput = "";
@@ -32,6 +34,8 @@ namespace SimpleLexer.Automata
 
         public void ProcessInput(string input)
         {
+            currentState = StartState;
+
             currentInput = input;
             Console.Write("({0}, {1}) ", currentState, input);
 
@@ -62,6 +66,73 @@ namespace SimpleLexer.Automata
                 Console.WriteLine("WORD '" + input + "' accepted!");
             else
                 Console.WriteLine("WORD '" + input + "' NOT accepted!");
+        }
+
+        public bool ProcessLine(string line)
+        {
+            currentState = StartState;
+            var tempState = currentState;
+
+            currentInput = line;
+            //Console.Write("({0}, {1}) ", currentState, line);
+
+            int i;
+            int tempI = 0;
+            var currentWord = "";
+            var tempCurrentWord = "";
+            for (i = 0; i < currentInput.Length; i++)
+            {
+                var currentChar = currentInput[i];
+                if (char.IsWhiteSpace(currentChar))
+                    continue;
+
+                if (AcceptStates.Contains(currentState))
+                {
+                    //currentState = StartState;
+                    tempState = currentState;
+                    tempI = i;
+                    tempCurrentWord = currentWord;
+                }
+
+                var transition = Transitions.FirstOrDefault(t => t.FromState == currentState && t.Symbol == currentChar);
+
+                if (transition == null)// && !AcceptStates.Contains(currentState))
+                {
+                    if (AcceptStates.Contains(currentState))
+                    {
+                        currentState = StartState;
+                        i--;
+                        tempState = null;
+                        Console.WriteLine(currentWord + " " + LanguageWords.FirstOrDefault(kvp => kvp.Value == currentWord).Key);
+                        currentWord = "";
+                        continue;
+                    }
+
+                    if (tempState == null || tempState == StartState)
+                        return false;
+                    
+                    currentState = tempState;
+                    currentWord = tempCurrentWord;
+                    i = tempI - 1;
+                    i--;
+                    tempState = null;
+                    continue;
+                }
+
+                //if (i != 0)
+                //    Console.Write("|- ({0}, {1}) ", currentState, line.Substring(i));
+
+                currentState = transition.ToState;
+                currentWord += currentChar;
+            }
+
+            if (!AcceptStates.Contains(currentState))
+            {
+                return false;
+            }
+
+            Console.WriteLine(currentWord + " " + LanguageWords.FirstOrDefault(kvp => kvp.Value == currentWord).Key);
+            return true;
         }
 
         public void PrintTransitionTable()
@@ -109,9 +180,9 @@ namespace SimpleLexer.Automata
 
         public void Determinize()
         {
-            for (int symbolsIndex = 0; symbolsIndex < Symbols.Count; symbolsIndex++)
+            for (int statesIndex = 0; statesIndex < States.Count; statesIndex++)
             {
-                for (int statesIndex = 0; statesIndex < States.Count; statesIndex++)
+                for (int symbolsIndex = 0; symbolsIndex < Symbols.Count; symbolsIndex++)
                 {
                     var transitions = Transitions.Where(t => t.FromState == States[statesIndex] && t.Symbol == Symbols[symbolsIndex]).ToList();
                     if (transitions.Count == 0)
@@ -134,13 +205,12 @@ namespace SimpleLexer.Automata
                     Transitions.Add(new Transition(States[statesIndex], Symbols[symbolsIndex], newState));
 
                     Transitions.RemoveAll(transitions.Contains);
-
-                    symbolsIndex = -1;
+                    
+                    statesIndex = -1;
                     break;
                 }
             }
 
-            Minimalize();
             Minimalize();
         }
 
@@ -159,9 +229,9 @@ namespace SimpleLexer.Automata
                     if (Transitions.Any(t =>
                                 t.ToState == iTransition.ToState 
                                 && t.Symbol == iTransition.Symbol 
-                                && t.FromState == newState))
+                                && t.FromState.Equals(newState)))
                         continue;
-
+                    
                     Transitions.Add(new Transition(newState, iTransition.Symbol, iTransition.ToState));
                 }
             }
@@ -169,7 +239,7 @@ namespace SimpleLexer.Automata
             return newState;
         }
 
-        // todo: GABO - maybe finish
+        // todo: maybe finish
         private void Minimalize()
         {
             RemoveUnreachableStates();
@@ -188,6 +258,53 @@ namespace SimpleLexer.Automata
             }
 
             States.RemoveAll(unreachableStates.Contains);
+        }
+
+        public static Automaton BuildAutomatonFromLanguageWords(Dictionary<int, string> languageWords)
+        {
+            var states = new List<State>();
+            var symbols = new List<char>();
+            var transitions = new List<Transition>();
+            var startState = new State("q0");
+            var acceptStates = new List<State>();
+
+            states.Add(startState);
+
+            foreach (var kvp in languageWords)
+            {
+                var id = kvp.Key;
+                var word = kvp.Value;
+
+                for (int i = 0; i < word.Length; i++)
+                {
+                    var c = word[i];
+
+                    if (!symbols.Contains(c))
+                        symbols.Add(c);
+
+                    int counter = 0;
+                    while (states.Any(s => s.Name == State.BuildStateName(c, id, counter)))
+                    {
+                        counter++;
+                    }
+
+                    var newState = new State(State.BuildStateName(c, id, counter));
+                    states.Add(newState);
+
+                    if (i == 0)
+                        transitions.Add(new Transition(startState, c, newState));
+                    else
+                        transitions.Add(new Transition(states[states.Count - 2], c, newState));
+
+                    if (i == word.Length - 1)
+                        acceptStates.Add(newState);
+                }
+            }
+
+            var automaton = new Automaton(states, symbols, transitions, startState, acceptStates);
+            automaton.LanguageWords = languageWords;
+
+            return automaton;
         }
     }
 }

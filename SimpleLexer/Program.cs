@@ -8,9 +8,42 @@ namespace SimpleLexer
     {
         public static void Main(string[] args)
         {
-            //Test1();
+            Test1();
             DeterminisationTest();
             DeterminisationTest2();
+
+            var languageWords = LanguageReader.ReadLanguage("language.txt");
+            var automaton = Automaton.BuildAutomatonFromLanguageWords(languageWords);
+            automaton.Determinize();
+
+            var inputLines = InputReader.ReadInput("input.txt");
+
+            int i = 1;
+            foreach (var line in inputLines)
+            {
+                if (!automaton.ProcessLine(line))
+                {
+                    Console.WriteLine("ERROR: LEXIKÁLNA CHYBA, r. " + i);
+                    return;
+                }
+
+                i++;
+            }
+
+            //automaton.PrintTransitionTable();
+            //automaton.ProcessInput("end");
+            //automaton.ProcessInput("int");
+            //automaton.ProcessInput("id");
+            //automaton.ProcessInput("begin");
+            //automaton.ProcessInput(";");
+            //automaton.Determinize();
+            //automaton.PrintTransitionTable();
+
+            //automaton.ProcessInput("end");
+            //automaton.ProcessInput("int");
+            //automaton.ProcessInput("id");
+            //automaton.ProcessInput("begin");
+            //automaton.ProcessInput(";");
         }
 
         public static void Test1()
