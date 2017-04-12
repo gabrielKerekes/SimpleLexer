@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace SimpleLexer.Automata
 {
@@ -34,19 +33,9 @@ namespace SimpleLexer.Automata
             Name = ToString();
         }
 
-        public override string ToString()
+        public sealed override string ToString()
         {
             return "[" + string.Join(", ", States) + "]";
         }
-
-        //public override bool Equals(object obj)
-        //{
-        //    var secondJoinedState = obj as JoinedState;
-        //    if (secondJoinedState == null)
-        //        return false;
-
-        //    return States.All(secondJoinedState.States.Contains)
-        //           && secondJoinedState.States.All(States.Contains);
-        //}
     }
 }

@@ -44,10 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automata\Automaton.cs" />
+    <Compile Include="Automata\AutomatonBuilder.cs" />
+    <Compile Include="Automata\Determinizer.cs" />
     <Compile Include="Automata\State.cs" />
     <Compile Include="Automata\Transition.cs" />
     <Compile Include="InputReader.cs" />
     <Compile Include="LanguageReader.cs" />
+    <Compile Include="Automata\Minimalizer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

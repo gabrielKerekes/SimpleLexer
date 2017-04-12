@@ -25,7 +25,7 @@ namespace SimpleLexer
             }
             catch (Exception e)
             {
-                Console.WriteLine("The file could not be read:");
+                Console.WriteLine("ERROR: Chyba vstupného súboru");
                 Console.WriteLine(e.Message);
             }
 
